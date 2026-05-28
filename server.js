@@ -20,7 +20,12 @@ const DATA_FILE = path.join(__dirname, 'pedidos-data.json');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(__dirname));   // sirve Pedidos.html y los .jsx
+app.use(express.static(__dirname, { index: 'Pedidos.html' }));
+
+// Raíz → sirve Pedidos.html (por si el static index no lo captura)
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'Pedidos.html'));
+});
 
 // ── Persistencia ──────────────────────────────────────────────────────────────
 let store = [];
