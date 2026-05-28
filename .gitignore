@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+
+# Datos persistidos localmente (no se versionan)
+pedidos-data.json
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
