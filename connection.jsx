@@ -38,8 +38,24 @@ const CONNECTION_DEFAULTS = {
   }
 };
 
-const CONFIG_KEY = "pedidos.connection.v3";
-const OLD_KEYS   = ["pedidos.connection.v2", "pedidos.connection.v1"];
+const CONFIG_KEY    = "pedidos.connection.v3";
+const OLD_KEYS      = ["pedidos.connection.v2", "pedidos.connection.v1"];
+const COURIERS_KEY  = "couriers_config";
+const DEFAULT_COURIERS_STR = "Shalom, Olva, JExpress, Otro";
+
+function loadCouriers() {
+  try {
+    const raw = localStorage.getItem(COURIERS_KEY);
+    const str = raw && raw.trim() ? raw : DEFAULT_COURIERS_STR;
+    return str.split(",").map(s => s.trim()).filter(Boolean);
+  } catch {
+    return DEFAULT_COURIERS_STR.split(",").map(s => s.trim());
+  }
+}
+
+function saveCouriers(str) {
+  try { localStorage.setItem(COURIERS_KEY, str || ""); } catch {}
+}
 
 function loadConfig() {
   try {
@@ -351,8 +367,16 @@ function ConnectionModal({ open, onClose, config, onSave }) {
   const [testing, setTesting]         = React.useState(false);
   const [testResult, setTestResult]   = React.useState(null);
   const [showMapping, setShowMapping] = React.useState(false);
+  const [couriersStr, setCouriersStr] = React.useState(
+    () => localStorage.getItem(COURIERS_KEY) || DEFAULT_COURIERS_STR
+  );
 
-  React.useEffect(() => { setDraft(config); setTestResult(null); }, [config, open]);
+  React.useEffect(() => {
+    setDraft(config);
+    setTestResult(null);
+    // Releer couriers al abrir el modal
+    setCouriersStr(localStorage.getItem(COURIERS_KEY) || DEFAULT_COURIERS_STR);
+  }, [config, open]);
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -550,9 +574,33 @@ function ConnectionModal({ open, onClose, config, onSave }) {
           )}
         </div>
 
+        {/* ── Mis Couriers ─────────────────────────── */}
+        <div className="modal__body" style={{ borderTop: "1px solid var(--c-divider)", paddingTop: "14px", gap: "8px" }}>
+          <div className="form-row">
+            <label className="form-label" htmlFor="couriers-input">
+              Mis Couriers
+            </label>
+            <input
+              id="couriers-input"
+              type="text"
+              className="form-input"
+              placeholder="Ej: Shalom, Olva, JExpress, InDrive"
+              value={couriersStr}
+              onChange={(e) => setCouriersStr(e.target.value)}
+            />
+            <p className="form-hint">
+              Separa cada courier con una coma. Se guardan en este navegador.
+            </p>
+          </div>
+        </div>
+
         <footer className="modal__footer">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancelar</button>
-          <button type="button" className="btn-primary" onClick={() => { onSave(draft); onClose(); }}>
+          <button type="button" className="btn-primary" onClick={() => {
+            saveCouriers(couriersStr);
+            onSave(draft);
+            onClose();
+          }}>
             Guardar
           </button>
         </footer>
@@ -564,6 +612,7 @@ function ConnectionModal({ open, onClose, config, onSave }) {
 Object.assign(window, {
   CONNECTION_DEFAULTS,
   loadConfig, saveConfig,
+  loadCouriers, saveCouriers,
   fetchPedidos, patchConfirmacion, patchClave, patchNotas, patchCourier,
   ConnectionBadge, ConnectionModal,
 });

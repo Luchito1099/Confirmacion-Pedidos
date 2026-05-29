@@ -183,20 +183,25 @@ function ClaveInput({ id, value, onSave }) {
 }
 
 // ── Courier selector ─────────────────────────────────────
-const COURIERS = ["Shalom", "Olva", "JExpress", "InDrive", "Otro"];
-const COURIER_STYLE = {
-  Shalom:   { background: "#DDEEFF", color: "#1040A0" },
-  Olva:     { background: "#D8F0E0", color: "#1A6B3A" },
-  JExpress: { background: "#FFE8D0", color: "#9A3A08" },
-  InDrive:  { background: "#EDD8FF", color: "#6020A0" },
-  Otro:     { background: "#E4E4E4", color: "#555555" },
-};
+// Paleta cíclica — se asigna por índice del courier en la lista
+const COURIER_PALETTE = [
+  { background: "#DDEEFF", color: "#1040A0" },
+  { background: "#D8F0E0", color: "#1A6B3A" },
+  { background: "#FFE8D0", color: "#9A3A08" },
+  { background: "#EDD8FF", color: "#6020A0" },
+  { background: "#FFE0E8", color: "#A01040" },
+  { background: "#E8F0D8", color: "#3A5A18" },
+];
 
-function CourierSelect({ id, value, onSave }) {
-  const style = value && COURIER_STYLE[value]
-    ? COURIER_STYLE[value]
-    : { background: "transparent", color: "#7A9AAA" };
+function getCourierStyle(name, couriers) {
+  if (!name) return { background: "transparent", color: "#7A9AAA" };
+  const idx = couriers.indexOf(name);
+  const p = COURIER_PALETTE[(idx >= 0 ? idx : couriers.length) % COURIER_PALETTE.length];
+  return { background: p.background, color: p.color };
+}
 
+function CourierSelect({ id, value, couriers, onSave }) {
+  const style = getCourierStyle(value || "", couriers);
   return (
     <select
       className={`courier-select${value ? " courier-select--set" : ""}`}
@@ -206,7 +211,7 @@ function CourierSelect({ id, value, onSave }) {
       onClick={(e) => e.stopPropagation()}
     >
       <option value="">🚚 courier</option>
-      {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
+      {couriers.map(c => <option key={c} value={c}>{c}</option>)}
     </select>
   );
 }
@@ -259,7 +264,7 @@ function NotasInput({ id, value, onSave }) {
 }
 
 // ── Pedido Card ───────────────────────────────────────────
-function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, onUpdateCourier, density, dateFmt }) {
+function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, onUpdateCourier, couriers, density, dateFmt }) {
   const confirmado = pedido.es_confirmado;
   return (
     <div
@@ -305,7 +310,7 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
 
       {/* Courier */}
       <div className="pedido-card__courier" onClick={(e) => e.stopPropagation()}>
-        <CourierSelect id={pedido.id} value={pedido.courier || ""} onSave={onUpdateCourier} />
+        <CourierSelect id={pedido.id} value={pedido.courier || ""} couriers={couriers} onSave={onUpdateCourier} />
       </div>
 
       {/* Clave de seguimiento Shalom */}
@@ -327,7 +332,7 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
       </div>
 
       {/* Botón siempre al fondo */}
-      <div className="pedido-card__actions" style={{marginTop:"auto"}} onClick={(e) => e.stopPropagation()}>
+      <div className="pedido-card__actions" onClick={(e) => e.stopPropagation()}>
         {confirmado ? (
           <button className="btn-unconfirm" onClick={() => onUnconfirm(pedido.id)}>
             <Icon name="x" size={12} />
@@ -404,7 +409,7 @@ function KanbanColumn({ title, count, total, groups, isConfirmedCol, accent, sel
 }
 
 // ── Filters bar ──────────────────────────────────────────
-function FiltersBar({ filters, setFilters, productos, distritos, dateRange, setDateRange }) {
+function FiltersBar({ filters, setFilters, productos, distritos, couriers, dateRange, setDateRange }) {
   return (
     <div className="filters">
       {/* Rango */}
@@ -451,7 +456,7 @@ function FiltersBar({ filters, setFilters, productos, distritos, dateRange, setD
         value={filters.courier || ""}
         onChange={(e) => setFilters(f => ({ ...f, courier: e.target.value }))}>
         <option value="">Courier</option>
-        {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
+        {couriers.map(c => <option key={c} value={c}>{c}</option>)}
       </select>
     </div>
   );
@@ -652,7 +657,7 @@ function BulkBar({ count, selectedIds, pedidos, onConfirmAll, onUnconfirmAll, on
 Object.assign(window, {
   PedidoCard, DateGroup, KanbanColumn,
   FiltersBar, Summary, SidePanel, Field, BulkBar,
-  ClaveInput, NotasInput, CourierSelect, COURIERS, COURIER_STYLE,
+  ClaveInput, NotasInput, CourierSelect, getCourierStyle, COURIER_PALETTE,
   formatFecha, formatHora, formatSoles,
   groupByDay, diffDays, startOfDay,
   Icon, StatusChip

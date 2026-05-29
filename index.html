@@ -93,6 +93,7 @@
 /* ── Reset / base ────────────────────────────────────────── */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
+html { overflow-x: hidden; }
 body {
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: var(--d-font);
@@ -101,8 +102,10 @@ body {
   background: var(--c-bg);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
-#root { height: 100%; }
+#root { height: 100%; overflow-x: hidden; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, select { font-family: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
@@ -115,10 +118,16 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 .app {
   height: 100vh;
   max-width: 1480px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 28px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+@media (max-width: 768px) {
+  .app { padding: 0 10px; }
 }
 .app__sticky {
   flex-shrink: 0;
@@ -412,11 +421,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   gap: 5px;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
   margin-right: -4px;
   scrollbar-gutter: stable;
+  width: 100%;
 }
 .column__body::-webkit-scrollbar { width: 8px; }
 .column__body::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--col-accent, var(--c-text-muted)) 35%, transparent); border-radius: 4px; }
@@ -437,23 +448,31 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 .date-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
 }
 .date-group__header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 4px;
-  border-radius: 5px;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
   text-align: left;
   width: 100%;
-  color: var(--c-text-muted);
+  color: var(--c-text);
+  background: rgba(255,255,255,0.04);
+  margin: 2px 0;
 }
-.date-group__header:hover { background: rgba(255,255,255,0.05); color: var(--c-text); }
+.date-group__header:hover {
+  background: rgba(255,255,255,0.09);
+  color: var(--c-text-strong);
+}
 .date-group__label {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: var(--c-text-strong);
 }
 .date-group__count {
   margin-left: auto;
@@ -470,19 +489,90 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   font-variant-numeric: tabular-nums;
   color: var(--c-text-muted);
 }
+/* Grid unificado: 2 columnas SIEMPRE, mismo CSS para Pendientes y Confirmados */
 .date-group__cards {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--d-card-gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   margin-top: 3px;
   margin-bottom: 2px;
-  align-items: stretch;
+  align-items: start;
+  min-width: 0;
+  width: 100%;
 }
-@media (min-width: 1200px) {
-  .date-group__cards { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 920px) {
-  .date-group__cards { grid-template-columns: 1fr; }
+
+/* Tabs móvil — ocultos en escritorio */
+.mobile-tabs { display: none; }
+
+/* Móvil: tabs + 1 sola columna visible a la vez */
+@media (max-width: 768px) {
+  .date-group__cards { gap: 6px; }
+
+  /* Mostrar tabs */
+  .mobile-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 6px 0 8px;
+  }
+  .mobile-tab {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    color: var(--c-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .mobile-tab__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .mobile-tab__count {
+    background: rgba(255,255,255,0.1);
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .mobile-tab.is-active {
+    background: var(--c-surface);
+    color: var(--c-text-strong);
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  /* Ocultar filtros producto, distrito y courier en móvil */
+  .filters__select { display: none; }
+  .filters { flex-wrap: wrap; }
+  .filters__search { min-width: 100%; }
+
+  /* Kanban: 1 sola columna activa */
+  .kanban {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .column {
+    overflow: visible;
+    min-height: auto;
+    height: auto;
+    flex: none;
+  }
+  .column__body {
+    overflow: visible;
+    overflow-x: hidden;
+    height: auto;
+    flex: none;
+  }
+  /* Solo se muestra la columna activa según el tab */
+  .kanban[data-mobile-tab="pending"]   .column[data-kind="confirmed"] { display: none; }
+  .kanban[data-mobile-tab="confirmed"] .column[data-kind="pending"]   { display: none; }
 }
 
 /* ── Pedido card ────────────────────────────────────────── */
@@ -497,8 +587,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   transition: transform 0.08s ease, box-shadow 0.12s ease;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   color: #0C1929;
+  /* Contención horizontal sin matar el contenido vertical */
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .pedido-card:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,0.35);
@@ -509,7 +603,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 }
 .pedido-card.is-confirmed {
   border-left: 3px solid var(--c-confirmed-accent);
-  background: rgba(255,255,255,0.82);
 }
 .pedido-card.is-selected {
   box-shadow: 0 0 0 2px var(--c-pending-accent), 0 2px 8px rgba(0,0,0,0.3);
@@ -532,6 +625,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 .pedido-card__id {
   font-family: "IBM Plex Mono", monospace;
@@ -539,6 +633,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   color: var(--c-text-muted);
   font-weight: 500;
   letter-spacing: -0.01em;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .pedido-card__hora {
   margin-left: auto;
@@ -555,6 +654,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 [data-density="compacta"] .pedido-card__nombre { font-size: 12px; }
 
@@ -564,6 +664,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   gap: 4px;
   font-size: 11px;
   color: var(--c-text);
+  min-width: 0;
 }
 .pedido-card__producto > svg { color: var(--c-text-muted); flex-shrink: 0; }
 .pedido-card__producto > span:first-of-type {
@@ -584,6 +685,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   align-items: center;
   gap: 8px;
   margin-top: 0;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 .pedido-card__precio {
   font-family: "IBM Plex Mono", monospace;
@@ -598,14 +701,19 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   gap: 2px;
   font-size: 11px;
   color: var(--c-text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.pedido-card__distrito .prov { opacity: 0.8; }
+.pedido-card__distrito .prov { opacity: 0.8; flex-shrink: 0; }
 
 .pedido-card__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
   margin-top: 0;
+  min-width: 0;
 }
 
 .chip {
@@ -626,9 +734,24 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 }
 
 .pedido-card__actions {
-  margin-top: 2px;
+  margin-top: auto;
   display: flex;
   gap: 4px;
+  min-width: 0;
+  padding-top: 4px;
+}
+.pedido-card__actions > button { width: 100%; }
+
+/* Mobile: tarjetas al 50% — reduce fuentes para que quepa */
+@media (max-width: 768px) {
+  .pedido-card { padding: 5px 6px; gap: 2px; }
+  .pedido-card__nombre   { font-size: 12px; }
+  .pedido-card__producto { font-size: 10px; }
+  .pedido-card__precio   { font-size: 11px; }
+  .pedido-card__distrito { font-size: 10px; }
+  .pedido-card__id, .pedido-card__hora { font-size: 9px; }
+  .pedido-card__chips .chip { font-size: 9px; padding: 1px 4px; }
+  .btn-confirm, .btn-unconfirm { padding: 3px 6px; font-size: 10px; }
 }
 
 /* ── Buttons ────────────────────────────────────────────── */
@@ -1257,6 +1380,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 /* ── Clave Shalom ─────────────────────────────────────────── */
 .pedido-card__clave {
   margin-top: 0;
+  min-width: 0;
 }
 .clave-tag {
   display: inline-flex;
@@ -1291,7 +1415,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 }
 
 /* ── Courier select ──────────────────────────────────────── */
-.pedido-card__courier { margin-top: 0; }
+.pedido-card__courier { margin-top: 0; min-width: 0; }
 .courier-select {
   display: inline-block;
   padding: 1px 18px 1px 6px;
@@ -1311,7 +1435,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 .courier-select--set { font-weight: 600; }
 
 /* ── Notas inline ────────────────────────────────────────── */
-.pedido-card__notas { margin-top: 0; }
+.pedido-card__notas { margin-top: 0; min-width: 0; }
 .notas-tag {
   display: inline-flex;
   align-items: center;
@@ -1420,6 +1544,7 @@ function App() {
     loadConfig().mode === "demo" ? window.PEDIDOS_DATA : []
   );
   const [filters, setFilters] = React.useState({ query: "", producto: "", distrito: "", courier: "" });
+  const [mobileTab, setMobileTab] = React.useState("pending");
   const [dateRange, setDateRange] = React.useState("7d");
   const [selected, setSelected] = React.useState(new Set());
   const [openPedido, setOpenPedido] = React.useState(null);
@@ -1428,6 +1553,8 @@ function App() {
   const [config, setConfig] = React.useState(() => loadConfig());
   const [connStatus, setConnStatus] = React.useState(config.mode === "demo" ? "demo" : "loading");
   const [connModalOpen, setConnModalOpen] = React.useState(false);
+  // Couriers configurables — se actualizan cuando el modal guarda
+  const [couriers, setCouriers] = React.useState(() => loadCouriers());
 
   // Sync state
   const [syncing, setSyncing] = React.useState(false);
@@ -1693,6 +1820,7 @@ function App() {
     onUpdateClave,
     onUpdateNotas,
     onUpdateCourier,
+    couriers,
     onOpen: setOpenPedido,
     density: t.density,
     dateFmt: t.fechaFmt
@@ -1748,12 +1876,33 @@ function App() {
           setFilters={setFilters}
           productos={productos}
           distritos={distritos}
+          couriers={couriers}
           dateRange={dateRange}
           setDateRange={setDateRange}
         />
       </div>
 
-      <div className="kanban">
+      {/* Tabs visibles solo en móvil */}
+      <div className="mobile-tabs">
+        <button
+          className={`mobile-tab${mobileTab === "pending" ? " is-active" : ""}`}
+          onClick={() => setMobileTab("pending")}
+        >
+          <span className="mobile-tab__dot" style={{ background: "var(--c-pending-accent)" }} />
+          Pendientes
+          <span className="mobile-tab__count">{pending.length}</span>
+        </button>
+        <button
+          className={`mobile-tab${mobileTab === "confirmed" ? " is-active" : ""}`}
+          onClick={() => setMobileTab("confirmed")}
+        >
+          <span className="mobile-tab__dot" style={{ background: "var(--c-confirmed-accent)" }} />
+          Confirmados
+          <span className="mobile-tab__count">{confirmed.length}</span>
+        </button>
+      </div>
+
+      <div className="kanban" data-mobile-tab={mobileTab}>
         <KanbanColumn
           title="Pendientes"
           count={pending.length}
@@ -1800,7 +1949,7 @@ function App() {
         open={connModalOpen}
         onClose={() => setConnModalOpen(false)}
         config={config}
-        onSave={(c) => { saveConfig(c); setConfig(c); }}
+        onSave={(c) => { saveConfig(c); setConfig(c); setCouriers(loadCouriers()); }}
       />
 
       <TweaksPanel title="Tweaks">
