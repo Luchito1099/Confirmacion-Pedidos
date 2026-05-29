@@ -264,7 +264,7 @@ function NotasInput({ id, value, onSave }) {
 }
 
 // ── Pedido Card ───────────────────────────────────────────
-function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, onUpdateCourier, couriers, density, dateFmt }) {
+function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onEntregar, onOpen, onUpdateClave, onUpdateNotas, onUpdateCourier, couriers, density, dateFmt }) {
   const confirmado = pedido.es_confirmado;
   return (
     <div
@@ -334,16 +334,116 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
       {/* Botón siempre al fondo */}
       <div className="pedido-card__actions" onClick={(e) => e.stopPropagation()}>
         {confirmado ? (
-          <button className="btn-unconfirm" onClick={() => onUnconfirm(pedido.id)}>
-            <Icon name="x" size={12} />
-            Des-confirmar
-          </button>
+          <>
+            <button className="btn-unconfirm" onClick={() => onUnconfirm(pedido.id)}>
+              <Icon name="x" size={12} />
+              Des-confirmar
+            </button>
+            <button className="btn-entregar" onClick={() => onEntregar(pedido.id, true)}>
+              <Icon name="check" size={12} />
+              Entregado
+            </button>
+          </>
         ) : (
           <button className="btn-confirm" onClick={() => onConfirm(pedido.id)}>
             <Icon name="check" size={12} />
             Confirmar
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Lista de Entregados (tipo tabla compacta) ──────────────
+function EntregadosLista({ pedidos, onEntregar, onOpen, couriers }) {
+  if (pedidos.length === 0) {
+    return (
+      <div className="entregados__empty">
+        Aún no hay pedidos entregados. Cuando marques uno como "Entregado" aparecerá aquí.
+      </div>
+    );
+  }
+  return (
+    <div className="entregados-list">
+      <div className="entregados-list__head">
+        <span>Fecha</span>
+        <span>ID</span>
+        <span>Cliente</span>
+        <span>Producto</span>
+        <span>Ubicación</span>
+        <span>Courier</span>
+        <span>Clave</span>
+        <span className="entregados-list__head-right">Total</span>
+        <span></span>
+      </div>
+      {pedidos.map(p => (
+        <div key={p.id} className="entregados-list__row" onClick={() => onOpen(p)}>
+          <span className="entregados-list__date">{formatFecha(p.created_at, "corta")}</span>
+          <span className="entregados-list__id">{p.id}</span>
+          <span className="entregados-list__name" title={p.nombre}>{p.nombre}</span>
+          <span className="entregados-list__prod" title={p.producto}>{p.producto}</span>
+          <span className="entregados-list__loc">
+            {p.distrito}{p.provincia && p.provincia !== "Lima" ? `, ${p.provincia}` : ""}
+          </span>
+          <span className="entregados-list__courier">{p.courier || "—"}</span>
+          <span className="entregados-list__clave">{p.clave_shalom || p.clave || "—"}</span>
+          <span className="entregados-list__total">{formatSoles(p.precio)}</span>
+          <span className="entregados-list__action" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="btn-unconfirm btn-desentregar"
+              title="Devolver a Confirmados"
+              onClick={() => onEntregar(p.id, false)}
+            >
+              <Icon name="x" size={12} />
+              Des-entregar
+            </button>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Embudo de pedidos (visual) ────────────────────────────
+function FunnelEmbudo({ totalPedidos, totalConfirmados, totalEntregados }) {
+  const pctConf = totalPedidos ? Math.round((totalConfirmados / totalPedidos) * 100) : 0;
+  const pctEntr = totalPedidos ? Math.round((totalEntregados / totalPedidos) * 100) : 0;
+  // Ancho relativo (los siguientes niveles son más estrechos)
+  const w1 = 100;
+  const w2 = totalPedidos ? Math.max(45, Math.round((totalConfirmados / totalPedidos) * 100)) : 0;
+  const w3 = totalPedidos ? Math.max(30, Math.round((totalEntregados / totalPedidos) * 100)) : 0;
+
+  return (
+    <div className="funnel">
+      <h3 className="funnel__title">Embudo de pedidos</h3>
+      <div className="funnel__stages">
+        <div className="funnel__stage" style={{ width: `${w1}%`, background: "#5E7E9E" }}>
+          <span className="funnel__stage-label">Pedidos totales</span>
+          <span className="funnel__stage-value">{totalPedidos}</span>
+        </div>
+        <div className="funnel__stage" style={{ width: `${w2}%`, background: "var(--c-confirmed-accent)" }}>
+          <span className="funnel__stage-label">Confirmados</span>
+          <span className="funnel__stage-value">{totalConfirmados} <small>({pctConf}%)</small></span>
+        </div>
+        <div className="funnel__stage" style={{ width: `${w3}%`, background: "#7A5AE0" }}>
+          <span className="funnel__stage-label">Entregados</span>
+          <span className="funnel__stage-value">{totalEntregados} <small>({pctEntr}%)</small></span>
+        </div>
+      </div>
+      <div className="funnel__legend">
+        <div className="funnel__legend-item">
+          <span>Conversión a confirmado</span>
+          <strong>{pctConf}%</strong>
+        </div>
+        <div className="funnel__legend-item">
+          <span>Conversión a entregado</span>
+          <strong>{pctEntr}%</strong>
+        </div>
+        <div className="funnel__legend-item">
+          <span>Confirmados que entregaste</span>
+          <strong>{totalConfirmados ? Math.round((totalEntregados / (totalConfirmados + totalEntregados)) * 100) : 0}%</strong>
+        </div>
       </div>
     </div>
   );
@@ -658,6 +758,7 @@ Object.assign(window, {
   PedidoCard, DateGroup, KanbanColumn,
   FiltersBar, Summary, SidePanel, Field, BulkBar,
   ClaveInput, NotasInput, CourierSelect, getCourierStyle, COURIER_PALETTE,
+  EntregadosLista, FunnelEmbudo,
   formatFecha, formatHora, formatSoles,
   groupByDay, diffDays, startOfDay,
   Icon, StatusChip

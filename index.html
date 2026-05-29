@@ -501,6 +501,198 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   width: 100%;
 }
 
+/* ── Tabs vista (Kanban / Entregados) ─────────────────────── */
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.09);
+  margin: 0 8px;
+}
+.view-tab {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.view-tab:hover { color: var(--c-text); }
+.view-tab.is-active {
+  background: var(--c-surface);
+  color: var(--c-text-strong);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.view-tab__count {
+  background: rgba(255,255,255,0.1);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Vista Entregados ──────────────────────────────────────── */
+.entregados-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 12px;
+  padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.entregados__empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: var(--c-text-muted);
+  font-size: 13px;
+  font-style: italic;
+  background: rgba(255,255,255,0.04);
+  border: 1px dashed var(--c-border-strong);
+  border-radius: 10px;
+}
+
+.entregados-list {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.entregados-list__head,
+.entregados-list__row {
+  display: grid;
+  grid-template-columns: 70px 60px 1.4fr 1.6fr 1.2fr 90px 100px 80px 100px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+.entregados-list__head {
+  background: rgba(255,255,255,0.04);
+  color: var(--c-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.entregados-list__head-right { text-align: right; }
+.entregados-list__row {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  color: var(--c-text);
+  transition: background 0.1s;
+}
+.entregados-list__row:hover { background: rgba(255,255,255,0.06); }
+.entregados-list__date { font-family: "IBM Plex Mono", monospace; color: var(--c-text-muted); }
+.entregados-list__id { font-family: "IBM Plex Mono", monospace; color: var(--c-text-muted); }
+.entregados-list__name { font-weight: 600; color: var(--c-text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entregados-list__prod { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entregados-list__loc { color: var(--c-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entregados-list__courier { color: var(--c-text); }
+.entregados-list__clave { font-family: "IBM Plex Mono", monospace; color: var(--c-text); font-size: 10px; }
+.entregados-list__total { font-family: "IBM Plex Mono", monospace; font-weight: 700; color: var(--c-text-strong); text-align: right; }
+.entregados-list__action { text-align: right; }
+
+/* ── Embudo de pedidos ─────────────────────────────────────── */
+.funnel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.funnel__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-strong);
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.funnel__stages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+.funnel__stage {
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transition: width 0.3s ease;
+  min-width: 200px;
+}
+.funnel__stage-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.92; }
+.funnel__stage-value { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 700; }
+.funnel__stage-value small { font-size: 11px; opacity: 0.85; margin-left: 4px; }
+.funnel__legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+}
+.funnel__legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.funnel__legend-item span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
+}
+.funnel__legend-item strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 16px;
+  color: var(--c-text-strong);
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .entregados-list__head,
+  .entregados-list__row {
+    grid-template-columns: 60px 1.4fr 1.4fr 80px 80px 100px;
+    font-size: 10px;
+  }
+  .entregados-list__id,
+  .entregados-list__loc { display: none; }
+}
+@media (max-width: 768px) {
+  .entregados-list__head { display: none; }
+  .entregados-list__row {
+    grid-template-columns: 1fr auto;
+    gap: 4px;
+  }
+  .entregados-list__date,
+  .entregados-list__prod,
+  .entregados-list__courier,
+  .entregados-list__clave { grid-column: 1 / 2; font-size: 10px; }
+  .entregados-list__name { font-size: 13px; }
+  .entregados-list__total { grid-column: 2; font-size: 14px; }
+  .entregados-list__action { grid-column: 1 / -1; margin-top: 6px; }
+  .funnel__stage { min-width: 140px; height: 42px; padding: 0 12px; }
+  .funnel__stage-value { font-size: 15px; }
+}
+
 /* Tabs móvil — ocultos en escritorio */
 .mobile-tabs { display: none; }
 
@@ -755,7 +947,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
 }
 
 /* ── Buttons ────────────────────────────────────────────── */
-.btn-confirm, .btn-unconfirm, .btn-ghost {
+.btn-confirm, .btn-unconfirm, .btn-ghost, .btn-entregar {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -765,6 +957,29 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   font-weight: 600;
   border: 1px solid transparent;
   transition: transform 0.05s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.btn-entregar {
+  background: #7A5AE0;
+  color: white;
+  border-color: color-mix(in oklab, #7A5AE0 80%, black);
+  flex: 1;
+  justify-content: center;
+}
+.btn-entregar:hover { background: color-mix(in oklab, #7A5AE0 88%, black); }
+.btn-entregar:active { transform: translateY(1px); }
+.btn-ghost--sm { padding: 2px 8px; font-size: 10px; }
+
+/* Botón Des-entregar en la lista (fondo oscuro) */
+.btn-desentregar {
+  color: rgba(255,255,255,0.85) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+  background: transparent !important;
+  flex: 0 0 auto !important;
+}
+.btn-desentregar:hover {
+  background: rgba(255,255,255,0.08) !important;
+  color: white !important;
+  border-color: rgba(255,255,255,0.36) !important;
 }
 .btn-confirm {
   background: var(--c-confirmed-accent);
@@ -1545,6 +1760,7 @@ function App() {
   );
   const [filters, setFilters] = React.useState({ query: "", producto: "", distrito: "", courier: "" });
   const [mobileTab, setMobileTab] = React.useState("pending");
+  const [view, setView] = React.useState("kanban");   // "kanban" | "entregados"
   const [dateRange, setDateRange] = React.useState("7d");
   const [selected, setSelected] = React.useState(new Set());
   const [openPedido, setOpenPedido] = React.useState(null);
@@ -1568,30 +1784,54 @@ function App() {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
+  // Pedidos recién modificados localmente — protegidos del GET por 60s
+  // (n8n + postgres tardan en consolidar el cambio; si el GET trae el valor
+  // viejo "deshace" el cambio que acabas de hacer)
+  const recientesRef = React.useRef(new Map());
+  const PROTECCION_MS = 60000;
+
+  const protegerPedido = React.useCallback((id, campos) => {
+    recientesRef.current.set(id, { campos, ts: Date.now() });
+  }, []);
+
+  const mergeConRecientes = React.useCallback((nuevos) => {
+    const ahora = Date.now();
+    // Limpia los expirados
+    for (const [id, v] of recientesRef.current.entries()) {
+      if (ahora - v.ts > PROTECCION_MS) recientesRef.current.delete(id);
+    }
+    if (recientesRef.current.size === 0) return nuevos;
+    return nuevos.map(p => {
+      const proteg = recientesRef.current.get(p.id);
+      return proteg ? { ...p, ...proteg.campos } : p;
+    });
+  }, []);
+
   // Carga de pedidos — al iniciar, al cambiar config y en el intervalo
   React.useEffect(() => {
     let cancelled = false;
     let timer = null;
 
     const load = async () => {
+      console.log("[load] refreshSec:", config.refreshSec, "mode:", config.mode);
       if (config.mode !== "demo") setConnStatus("loading");
       const r = await fetchPedidos(config);
       if (cancelled) return;
       if (r.ok) {
-        setPedidos(r.data);
+        setPedidos(mergeConRecientes(r.data));
         setConnStatus(config.mode === "demo" ? "demo" : "ok");
       } else {
         setConnStatus("error");
-        // No cae a demo data: mantiene lo que había
       }
     };
 
     load();
     if (config.mode !== "demo" && config.refreshSec > 0) {
+      console.log("[interval] configurando setInterval cada", config.refreshSec, "seg");
       timer = setInterval(load, config.refreshSec * 1000);
     }
     return () => { cancelled = true; if (timer) clearInterval(timer); };
-  }, [config]);
+  }, [config, mergeConRecientes]);
 
   // Botón Sincronizar — re-fetch manual del webhook GET
   const handleSync = React.useCallback(async () => {
@@ -1600,7 +1840,7 @@ function App() {
     setSyncError(null);
     const r = await fetchPedidos(config);
     if (r.ok) {
-      setPedidos(r.data);
+      setPedidos(mergeConRecientes(r.data));
       setLastSync(new Date());
       setConnStatus("ok");
     } else {
@@ -1608,7 +1848,7 @@ function App() {
       setConnStatus("error");
     }
     setSyncing(false);
-  }, [config, syncing]);
+  }, [config, syncing, mergeConRecientes]);
 
   // Apply tweaks to document
   React.useEffect(() => {
@@ -1654,7 +1894,12 @@ function App() {
               (p.provincia ?? "") !== filters.distrito) return false;
 
           // Courier (null/vacío solo pasa cuando filtro es "Todos")
-          if (filters.courier && (p.courier || "") !== filters.courier) return false;
+          // Compara con trim + lowercase para tolerar espacios y mayúsculas
+          if (filters.courier) {
+            const pc = String(p.courier ?? "").trim().toLowerCase();
+            const fc = String(filters.courier).trim().toLowerCase();
+            if (pc !== fc) return false;
+          }
 
           return true;
         } catch (innerErr) {
@@ -1668,11 +1913,18 @@ function App() {
     }
   }, [pedidos, filters, dateRange]);
 
-  const pending   = filtered.filter(p => !p.es_confirmado);
-  const confirmed = filtered.filter(p => p.es_confirmado);
-  const pendingTotal   = pending.reduce((s, p) => s + p.precio, 0);
-  const confirmedTotal = confirmed.reduce((s, p) => s + p.precio, 0);
-  const totalAll = pendingTotal + confirmedTotal;
+  // Tres categorías separadas:
+  // - Pendientes: no confirmado, no entregado
+  // - Confirmados: confirmado y NO entregado (visible en kanban)
+  // - Entregados: entregado (se ocultan del kanban)
+  const pending    = filtered.filter(p =>  !p.es_confirmado && !p.es_entregado);
+  const confirmed  = filtered.filter(p =>   p.es_confirmado && !p.es_entregado);
+  const entregados = filtered.filter(p =>   p.es_entregado)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const pendingTotal    = pending.reduce((s, p) => s + p.precio, 0);
+  const confirmedTotal  = confirmed.reduce((s, p) => s + p.precio, 0);
+  const entregadosTotal = entregados.reduce((s, p) => s + p.precio, 0);
+  const totalAll = pendingTotal + confirmedTotal + entregadosTotal;
 
   // ── Actions ─────────────────────────────────────────────
 
@@ -1685,6 +1937,8 @@ function App() {
     // Optimistic
     setPedidos(ps => ps.map(p => ids.has(p.id) ? { ...p, es_confirmado: value } : p));
     setOpenPedido(op => op && ids.has(op.id) ? { ...op, es_confirmado: value } : op);
+    // Protege contra GET con datos viejos
+    ids.forEach(id => protegerPedido(id, { es_confirmado: value }));
 
     if (config.mode === "demo") {
       console.warn("[update] modo demo — POST no se envía. Cambia el modo a N8N en Conexión.");
@@ -1709,7 +1963,7 @@ function App() {
         }
       });
     });
-  }, [config, pedidos, showToast]);
+  }, [config, pedidos, showToast, protegerPedido]);
 
   const onConfirm   = React.useCallback((id) => update(new Set([id]), true),  [update]);
   const onUnconfirm = React.useCallback((id) => update(new Set([id]), false), [update]);
@@ -1740,6 +1994,7 @@ function App() {
     // Actualiza ambos nombres de campo para que re-renders y sync no lo pierdan
     setPedidos(ps => ps.map(p => p.id === id ? { ...p, clave, clave_shalom: clave } : p));
     setOpenPedido(op => op && op.id === id ? { ...op, clave, clave_shalom: clave } : op);
+    protegerPedido(id, { clave, clave_shalom: clave });
 
     if (config.mode === "demo") {
       console.warn("[onUpdateClave] modo demo — POST no se envía.");
@@ -1757,13 +2012,41 @@ function App() {
         showToast(`Error al guardar clave de ${id}: ${r.error}`);
       }
     });
-  }, [config, pedidos, showToast]);
+  }, [config, pedidos, showToast, protegerPedido]);
+
+  // Marcar como entregado / regresar a confirmados
+  // Actualiza el campo 'estado' (string) y derivado 'es_entregado' (boolean)
+  const onEntregar = React.useCallback((id, value) => {
+    console.log("[onEntregar] id:", id, "value:", value);
+    const nuevoEstado = value ? "entregado" : "confirmado";
+    const prev = pedidos;
+    setPedidos(ps => ps.map(p => p.id === id ? { ...p, estado: nuevoEstado, es_entregado: value } : p));
+    setOpenPedido(op => op && op.id === id ? { ...op, estado: nuevoEstado, es_entregado: value } : op);
+    protegerPedido(id, { estado: nuevoEstado, es_entregado: value });
+    if (config.mode === "demo") return;
+    patchEntrega(config, id, value).then(r => {
+      if (!r.ok) {
+        const orig = prev.find(p => p.id === id);
+        if (orig) {
+          setPedidos(ps => ps.map(p => p.id === id
+            ? { ...p, estado: orig.estado || "", es_entregado: !!orig.es_entregado }
+            : p));
+          setOpenPedido(op => op && op.id === id
+            ? { ...op, estado: orig.estado || "", es_entregado: !!orig.es_entregado }
+            : op);
+        }
+        showToast(`Error al marcar entregado: ${r.error}`);
+      }
+    });
+  }, [config, pedidos, showToast, protegerPedido]);
 
   // Actualizar courier con optimistic update y revert en fallo
   const onUpdateCourier = React.useCallback((id, courier) => {
+    console.log("[onUpdateCourier] id:", id, "courier:", courier);
     const prev = pedidos;
     setPedidos(ps => ps.map(p => p.id === id ? { ...p, courier } : p));
     setOpenPedido(op => op && op.id === id ? { ...op, courier } : op);
+    protegerPedido(id, { courier });
     if (config.mode === "demo") return;
     patchCourier(config, id, courier).then(r => {
       if (!r.ok) {
@@ -1775,7 +2058,7 @@ function App() {
         showToast(`Error al guardar courier de ${id}: ${r.error}`);
       }
     });
-  }, [config, pedidos, showToast]);
+  }, [config, pedidos, showToast, protegerPedido]);
 
   // Actualizar notas con optimistic update y revert en fallo
   const onUpdateNotas = React.useCallback((id, notas) => {
@@ -1783,6 +2066,7 @@ function App() {
     const prev = pedidos;
     setPedidos(ps => ps.map(p => p.id === id ? { ...p, notas } : p));
     setOpenPedido(op => op && op.id === id ? { ...op, notas } : op);
+    protegerPedido(id, { notas });
     if (config.mode === "demo") return;
     patchNotas(config, id, notas).then(r => {
       if (!r.ok) {
@@ -1794,7 +2078,7 @@ function App() {
         showToast(`Error al guardar nota de ${id}: ${r.error}`);
       }
     });
-  }, [config, pedidos, showToast]);
+  }, [config, pedidos, showToast, protegerPedido]);
 
   // Filtros dinámicos — se recalculan cada vez que llegan nuevos pedidos
   const productos = React.useMemo(() => {
@@ -1817,6 +2101,7 @@ function App() {
     onToggleSelect,
     onConfirm,
     onUnconfirm,
+    onEntregar,
     onUpdateClave,
     onUpdateNotas,
     onUpdateCourier,
@@ -1862,6 +2147,21 @@ function App() {
                   {syncError && <span className="sync-error">{syncError}</span>}
                 </div>
               )}
+              <div className="view-tabs">
+                <button
+                  className={`view-tab${view === "kanban" ? " is-active" : ""}`}
+                  onClick={() => setView("kanban")}
+                >
+                  Kanban
+                </button>
+                <button
+                  className={`view-tab${view === "entregados" ? " is-active" : ""}`}
+                  onClick={() => setView("entregados")}
+                >
+                  Entregados
+                  <span className="view-tab__count">{entregados.length}</span>
+                </button>
+              </div>
               <ConnectionBadge
                 status={connStatus}
                 mode={config.mode}
@@ -1902,28 +2202,44 @@ function App() {
         </button>
       </div>
 
-      <div className="kanban" data-mobile-tab={mobileTab}>
-        <KanbanColumn
-          title="Pendientes"
-          count={pending.length}
-          total={pendingTotal}
-          groups={groupByDay(pending)}
-          isConfirmedCol={false}
-          accent="var(--c-pending-accent)"
-          selectedIds={selected}
-          {...cardProps}
-        />
-        <KanbanColumn
-          title="Confirmados"
-          count={confirmed.length}
-          total={confirmedTotal}
-          groups={groupByDay(confirmed)}
-          isConfirmedCol={true}
-          accent="var(--c-confirmed-accent)"
-          selectedIds={selected}
-          {...cardProps}
-        />
-      </div>
+      {view === "kanban" ? (
+        <div className="kanban" data-mobile-tab={mobileTab}>
+          <KanbanColumn
+            title="Pendientes"
+            count={pending.length}
+            total={pendingTotal}
+            groups={groupByDay(pending)}
+            isConfirmedCol={false}
+            accent="var(--c-pending-accent)"
+            selectedIds={selected}
+            {...cardProps}
+          />
+          <KanbanColumn
+            title="Confirmados"
+            count={confirmed.length}
+            total={confirmedTotal}
+            groups={groupByDay(confirmed)}
+            isConfirmedCol={true}
+            accent="var(--c-confirmed-accent)"
+            selectedIds={selected}
+            {...cardProps}
+          />
+        </div>
+      ) : (
+        <div className="entregados-view">
+          <FunnelEmbudo
+            totalPedidos={pending.length + confirmed.length + entregados.length}
+            totalConfirmados={confirmed.length}
+            totalEntregados={entregados.length}
+          />
+          <EntregadosLista
+            pedidos={entregados}
+            onEntregar={onEntregar}
+            onOpen={setOpenPedido}
+            couriers={couriers}
+          />
+        </div>
+      )}
 
       <BulkBar
         count={selected.size}

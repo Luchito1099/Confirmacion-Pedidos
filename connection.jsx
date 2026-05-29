@@ -145,6 +145,10 @@ async function fetchPedidos(cfg) {
         clave:         r.clave_shalom || r.clave || "",
         clave_shalom:  r.clave_shalom || r.clave || "",
         courier:       r.courier || "",
+        // El campo 'estado' es la fuente de verdad. Si vale 'entregado'
+        // (en cualquier capitalización), el pedido va a la lista de Entregados.
+        estado:        r.estado || "",
+        es_entregado:  String(r.estado || "").trim().toLowerCase() === "entregado",
       }));
       console.log("PRIMER PEDIDO RAW:", JSON.stringify(rows[0]));   // DEBUG — comentar tras verificar
       console.log("PRIMER PEDIDO NORM:", JSON.stringify(data[0]));  // DEBUG
@@ -232,6 +236,41 @@ async function patchConfirmacion(cfg, id, value) {
       url = `${base}/${encodeURIComponent(id)}`;
     }
     const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify({ [confirmCol]: value }) });
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+// ── patchEntrega ──────────────────────────────────────────
+// Marca un pedido como entregado o lo regresa a confirmado.
+// El campo en Postgres es 'estado' (string).
+async function patchEntrega(cfg, id, value) {
+  if (cfg.mode === "demo") return { ok: true };
+  const nuevoEstado = value ? "entregado" : "confirmado";
+  if (cfg.mode === "n8n") return postN8N(cfg, {
+    id,
+    accion: value ? "entregar" : "desentregar",
+    estado: nuevoEstado,
+  });
+  if (!cfg.url) return { ok: true };
+  try {
+    const base = cfg.url.replace(/\/+$/, "");
+    const headers = { ...buildHeaders(cfg), "Content-Type": "application/json" };
+    const idCol = cfg.mapping.id || "id";
+    const col   = cfg.mapping.estado || "estado";
+    let url;
+    if (cfg.mode === "supabase") {
+      url = `${base}/rest/v1/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else if (cfg.mode === "postgrest") {
+      url = `${base}/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else {
+      url = `${base}/${encodeURIComponent(id)}`;
+    }
+    const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify({ [col]: nuevoEstado }) });
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
     return { ok: true };
   } catch (e) {
@@ -613,6 +652,6 @@ Object.assign(window, {
   CONNECTION_DEFAULTS,
   loadConfig, saveConfig,
   loadCouriers, saveCouriers,
-  fetchPedidos, patchConfirmacion, patchClave, patchNotas, patchCourier,
+  fetchPedidos, patchConfirmacion, patchClave, patchNotas, patchCourier, patchEntrega,
   ConnectionBadge, ConnectionModal,
 });
