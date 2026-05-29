@@ -34,6 +34,7 @@ const CONNECTION_DEFAULTS = {
     es_confirmado:     "es_confirmado",
     notas:             "notas",
     clave:             "clave",
+    courier:           "courier",
   }
 };
 
@@ -127,6 +128,7 @@ async function fetchPedidos(cfg) {
         // Acepta clave_shalom (nombre real en Postgres) o clave como fallback
         clave:         r.clave_shalom || r.clave || "",
         clave_shalom:  r.clave_shalom || r.clave || "",
+        courier:       r.courier || "",
       }));
       console.log("PRIMER PEDIDO RAW:", JSON.stringify(rows[0]));   // DEBUG — comentar tras verificar
       console.log("PRIMER PEDIDO NORM:", JSON.stringify(data[0]));  // DEBUG
@@ -214,6 +216,33 @@ async function patchConfirmacion(cfg, id, value) {
       url = `${base}/${encodeURIComponent(id)}`;
     }
     const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify({ [confirmCol]: value }) });
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+// ── patchCourier ──────────────────────────────────────────
+async function patchCourier(cfg, id, courier) {
+  if (cfg.mode === "demo") return { ok: true };
+  if (cfg.mode === "n8n") return postN8N(cfg, { id, accion: "courier", courier });
+  if (!cfg.url) return { ok: true };
+  try {
+    const base = cfg.url.replace(/\/+$/, "");
+    const headers = { ...buildHeaders(cfg), "Content-Type": "application/json" };
+    const idCol = cfg.mapping.id || "id";
+    let url;
+    if (cfg.mode === "supabase") {
+      url = `${base}/rest/v1/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else if (cfg.mode === "postgrest") {
+      url = `${base}/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else {
+      url = `${base}/${encodeURIComponent(id)}`;
+    }
+    const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify({ courier }) });
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
     return { ok: true };
   } catch (e) {
@@ -535,6 +564,6 @@ function ConnectionModal({ open, onClose, config, onSave }) {
 Object.assign(window, {
   CONNECTION_DEFAULTS,
   loadConfig, saveConfig,
-  fetchPedidos, patchConfirmacion, patchClave, patchNotas,
+  fetchPedidos, patchConfirmacion, patchClave, patchNotas, patchCourier,
   ConnectionBadge, ConnectionModal,
 });

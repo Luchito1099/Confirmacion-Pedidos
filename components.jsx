@@ -182,6 +182,35 @@ function ClaveInput({ id, value, onSave }) {
   );
 }
 
+// ── Courier selector ─────────────────────────────────────
+const COURIERS = ["Shalom", "Olva", "JExpress", "InDrive", "Otro"];
+const COURIER_STYLE = {
+  Shalom:   { background: "#DDEEFF", color: "#1040A0" },
+  Olva:     { background: "#D8F0E0", color: "#1A6B3A" },
+  JExpress: { background: "#FFE8D0", color: "#9A3A08" },
+  InDrive:  { background: "#EDD8FF", color: "#6020A0" },
+  Otro:     { background: "#E4E4E4", color: "#555555" },
+};
+
+function CourierSelect({ id, value, onSave }) {
+  const style = value && COURIER_STYLE[value]
+    ? COURIER_STYLE[value]
+    : { background: "transparent", color: "#7A9AAA" };
+
+  return (
+    <select
+      className={`courier-select${value ? " courier-select--set" : ""}`}
+      value={value || ""}
+      style={style}
+      onChange={(e) => { e.stopPropagation(); onSave(id, e.target.value); }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <option value="">🚚 courier</option>
+      {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
+    </select>
+  );
+}
+
 // ── Notas inline editor ───────────────────────────────────
 function NotasInput({ id, value, onSave }) {
   const [editing, setEditing] = React.useState(false);
@@ -230,7 +259,7 @@ function NotasInput({ id, value, onSave }) {
 }
 
 // ── Pedido Card ───────────────────────────────────────────
-function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, density, dateFmt }) {
+function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, onUpdateCourier, density, dateFmt }) {
   const confirmado = pedido.es_confirmado;
   return (
     <div
@@ -272,6 +301,11 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
         <StatusChip kind="metodo" value={pedido.metodo_pago} />
         <StatusChip kind="financial" value={pedido.financial_status} />
         {density !== "compacta" && <StatusChip kind="fulfillment" value={pedido.fulfillment_status} />}
+      </div>
+
+      {/* Courier */}
+      <div className="pedido-card__courier" onClick={(e) => e.stopPropagation()}>
+        <CourierSelect id={pedido.id} value={pedido.courier || ""} onSave={onUpdateCourier} />
       </div>
 
       {/* Clave de seguimiento Shalom */}
@@ -373,65 +407,52 @@ function KanbanColumn({ title, count, total, groups, isConfirmedCol, accent, sel
 function FiltersBar({ filters, setFilters, productos, distritos, dateRange, setDateRange }) {
   return (
     <div className="filters">
-      <div className="filters__group">
-        <label className="filters__label">Rango</label>
-        <div className="seg">
-          {[
-            { v: "hoy", l: "Hoy" },
-            { v: "7d",  l: "7 días" },
-            { v: "30d", l: "30 días" },
-            { v: "all", l: "Todo" },
-          ].map(opt => (
-            <button
-              key={opt.v}
-              className={`seg__btn ${dateRange === opt.v ? "is-active" : ""}`}
-              onClick={() => setDateRange(opt.v)}
-            >
-              {opt.l}
-            </button>
-          ))}
-        </div>
+      {/* Rango */}
+      <div className="seg" style={{ flexShrink: 0 }}>
+        {[{ v: "hoy", l: "Hoy" }, { v: "7d", l: "7d" }, { v: "30d", l: "30d" }, { v: "all", l: "Todo" }].map(opt => (
+          <button key={opt.v}
+            className={`seg__btn ${dateRange === opt.v ? "is-active" : ""}`}
+            onClick={() => setDateRange(opt.v)}
+          >{opt.l}</button>
+        ))}
       </div>
 
-      <div className="filters__group filters__group--grow">
-        <label className="filters__label">Buscar</label>
-        <div className="input-wrap">
-          <Icon name="search" size={14} />
-          <input
-            type="text"
-            placeholder="Nombre o teléfono"
-            value={filters.query}
-            onChange={(e) => setFilters(f => ({ ...f, query: e.target.value }))}
-          />
-          {filters.query && (
-            <button className="input-clear" onClick={() => setFilters(f => ({ ...f, query: "" }))}>
-              <Icon name="x" size={12} />
-            </button>
-          )}
-        </div>
+      {/* Buscar */}
+      <div className="input-wrap filters__search">
+        <Icon name="search" size={13} />
+        <input type="text" placeholder="Nombre o teléfono"
+          value={filters.query}
+          onChange={(e) => setFilters(f => ({ ...f, query: e.target.value }))} />
+        {filters.query && (
+          <button className="input-clear" onClick={() => setFilters(f => ({ ...f, query: "" }))}>
+            <Icon name="x" size={11} />
+          </button>
+        )}
       </div>
 
-      <div className="filters__group">
-        <label className="filters__label">Producto</label>
-        <select
-          value={filters.producto}
-          onChange={(e) => setFilters(f => ({ ...f, producto: e.target.value }))}
-        >
-          <option value="">Todos</option>
-          {productos.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-      </div>
+      {/* Producto */}
+      <select className="filters__select" style={{ minWidth: 140 }}
+        value={filters.producto}
+        onChange={(e) => setFilters(f => ({ ...f, producto: e.target.value }))}>
+        <option value="">Producto</option>
+        {productos.map(p => <option key={p} value={p}>{p}</option>)}
+      </select>
 
-      <div className="filters__group">
-        <label className="filters__label">Distrito / Provincia</label>
-        <select
-          value={filters.distrito}
-          onChange={(e) => setFilters(f => ({ ...f, distrito: e.target.value }))}
-        >
-          <option value="">Todos</option>
-          {distritos.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-      </div>
+      {/* Distrito */}
+      <select className="filters__select" style={{ minWidth: 140 }}
+        value={filters.distrito}
+        onChange={(e) => setFilters(f => ({ ...f, distrito: e.target.value }))}>
+        <option value="">Distrito</option>
+        {distritos.map(d => <option key={d} value={d}>{d}</option>)}
+      </select>
+
+      {/* Courier */}
+      <select className="filters__select" style={{ minWidth: 120 }}
+        value={filters.courier || ""}
+        onChange={(e) => setFilters(f => ({ ...f, courier: e.target.value }))}>
+        <option value="">Courier</option>
+        {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
+      </select>
     </div>
   );
 }
@@ -631,7 +652,7 @@ function BulkBar({ count, selectedIds, pedidos, onConfirmAll, onUnconfirmAll, on
 Object.assign(window, {
   PedidoCard, DateGroup, KanbanColumn,
   FiltersBar, Summary, SidePanel, Field, BulkBar,
-  ClaveInput, NotasInput,
+  ClaveInput, NotasInput, CourierSelect, COURIERS, COURIER_STYLE,
   formatFecha, formatHora, formatSoles,
   groupByDay, diffDays, startOfDay,
   Icon, StatusChip
