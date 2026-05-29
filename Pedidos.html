@@ -1375,7 +1375,12 @@ const ESTADO_PALETTES = {
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [pedidos, setPedidos] = React.useState(window.PEDIDOS_DATA);
+  // Demo → carga datos de ejemplo. Cualquier otro modo → empieza vacío
+  // para que los dropdowns de ciudad/producto no muestren ciudades falsas
+  // mientras llega el GET real.
+  const [pedidos, setPedidos] = React.useState(() =>
+    loadConfig().mode === "demo" ? window.PEDIDOS_DATA : []
+  );
   const [filters, setFilters] = React.useState({ query: "", producto: "", distrito: "" });
   const [dateRange, setDateRange] = React.useState("7d");
   const [selected, setSelected] = React.useState(new Set());
@@ -1615,9 +1620,10 @@ function App() {
   const distritos = React.useMemo(() => {
     const set = new Set();
     pedidos.forEach(p => {
-      const val = p.distrito || p.provincia;
-      if (val) set.add(String(val));
+      if (p.distrito)  set.add(String(p.distrito));
+      if (p.provincia) set.add(String(p.provincia));
     });
+    // Elimina duplicados entre distrito y provincia (mismo nombre)
     return [...set].sort((a, b) => a.localeCompare(b, "es"));
   }, [pedidos]);
 
