@@ -456,11 +456,15 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   color: var(--c-text-muted);
 }
 .date-group__cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--d-card-gap);
   margin-top: 3px;
   margin-bottom: 2px;
+  align-items: stretch;
+}
+@media (min-width: 1400px) {
+  .date-group__cards { grid-template-columns: 1fr 1fr; }
 }
 
 /* ── Pedido card ────────────────────────────────────────── */
@@ -1268,6 +1272,45 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   box-shadow: 0 0 0 2px rgba(0,196,180,0.18) !important;
 }
 
+/* ── Notas inline ────────────────────────────────────────── */
+.pedido-card__notas { margin-top: 0; }
+.notas-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.1s ease;
+}
+.notas-tag:hover { background: rgba(0,0,0,0.05); }
+.notas-tag--set {
+  color: #8A5A10;
+  background: #FFF3DC;
+  font-weight: 500;
+}
+.notas-tag--set:hover { background: #FFE8B0; }
+.notas-tag__empty { color: var(--c-text-muted); font-style: italic; }
+.notas-textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: none;
+  font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  font-size: 12px !important;
+  background: var(--c-surface) !important;
+  color: var(--c-text-strong) !important;
+  border-color: var(--c-green-mid) !important;
+  box-shadow: 0 0 0 2px rgba(0,196,180,0.18) !important;
+  line-height: 1.4;
+}
+
 /* ── Toast discreto para errores de POST ─────────────────── */
 .post-toast {
   position: fixed;
@@ -1543,11 +1586,47 @@ function App() {
     });
   }, [config, pedidos, showToast]);
 
+  // Actualizar notas con optimistic update y revert en fallo
+  const onUpdateNotas = React.useCallback((id, notas) => {
+    console.log("[onUpdateNotas] id:", id, "notas:", notas, "| mode:", config.mode);
+    const prev = pedidos;
+    setPedidos(ps => ps.map(p => p.id === id ? { ...p, notas } : p));
+    setOpenPedido(op => op && op.id === id ? { ...op, notas } : op);
+    if (config.mode === "demo") return;
+    patchNotas(config, id, notas).then(r => {
+      if (!r.ok) {
+        const orig = prev.find(p => p.id === id);
+        if (orig) {
+          setPedidos(ps => ps.map(p => p.id === id ? { ...p, notas: orig.notas } : p));
+          setOpenPedido(op => op && op.id === id ? { ...op, notas: orig.notas } : op);
+        }
+        showToast(`Error al guardar nota de ${id}: ${r.error}`);
+      }
+    });
+  }, [config, pedidos, showToast]);
+
+  // Filtros dinámicos — se recalculan cada vez que llegan nuevos pedidos
+  const productos = React.useMemo(() => {
+    const set = new Set();
+    pedidos.forEach(p => { if (p.producto) set.add(String(p.producto)); });
+    return [...set].sort((a, b) => a.localeCompare(b, "es"));
+  }, [pedidos]);
+
+  const distritos = React.useMemo(() => {
+    const set = new Set();
+    pedidos.forEach(p => {
+      const val = p.distrito || p.provincia;
+      if (val) set.add(String(val));
+    });
+    return [...set].sort((a, b) => a.localeCompare(b, "es"));
+  }, [pedidos]);
+
   const cardProps = {
     onToggleSelect,
     onConfirm,
     onUnconfirm,
     onUpdateClave,
+    onUpdateNotas,
     onOpen: setOpenPedido,
     density: t.density,
     dateFmt: t.fechaFmt
@@ -1601,8 +1680,8 @@ function App() {
         <FiltersBar
           filters={filters}
           setFilters={setFilters}
-          productos={window.PEDIDOS_PRODUCTOS}
-          distritos={[...window.PEDIDOS_DISTRITOS, ...window.PEDIDOS_PROVINCIAS.filter(p => !window.PEDIDOS_DISTRITOS.includes(p))]}
+          productos={productos}
+          distritos={distritos}
           dateRange={dateRange}
           setDateRange={setDateRange}
         />
@@ -1646,6 +1725,7 @@ function App() {
         onConfirm={onConfirm}
         onUnconfirm={onUnconfirm}
         onUpdateClave={onUpdateClave}
+        onUpdateNotas={onUpdateNotas}
       />
 
       {toast && <div className="post-toast">{toast}</div>}

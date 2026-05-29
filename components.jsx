@@ -182,8 +182,55 @@ function ClaveInput({ id, value, onSave }) {
   );
 }
 
+// ── Notas inline editor ───────────────────────────────────
+function NotasInput({ id, value, onSave }) {
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft]     = React.useState(value || "");
+
+  React.useEffect(() => { if (!editing) setDraft(value || ""); }, [value, editing]);
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed !== (value || "").trim()) onSave(id, trimmed);
+    setEditing(false);
+  };
+
+  const handleKey = (e) => {
+    if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { setDraft(value || ""); setEditing(false); }
+    e.stopPropagation();
+  };
+
+  if (editing) {
+    return (
+      <textarea
+        className="form-input notas-textarea"
+        rows={3}
+        value={draft}
+        autoFocus
+        placeholder="Escribe una nota… (Ctrl+Enter para guardar)"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={handleKey}
+        onClick={(e) => e.stopPropagation()}
+      />
+    );
+  }
+
+  const preview = value ? value.slice(0, 30) + (value.length > 30 ? "…" : "") : null;
+  return (
+    <span
+      className={`notas-tag${value ? " notas-tag--set" : ""}`}
+      onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      title={value ? value : "Agregar nota"}
+    >
+      📝 {preview || <span className="notas-tag__empty">+ nota</span>}
+    </span>
+  );
+}
+
 // ── Pedido Card ───────────────────────────────────────────
-function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, density, dateFmt }) {
+function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, onOpen, onUpdateClave, onUpdateNotas, density, dateFmt }) {
   const confirmado = pedido.es_confirmado;
   return (
     <div
@@ -225,18 +272,10 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
         <StatusChip kind="metodo" value={pedido.metodo_pago} />
         <StatusChip kind="financial" value={pedido.financial_status} />
         {density !== "compacta" && <StatusChip kind="fulfillment" value={pedido.fulfillment_status} />}
-        {pedido.notas && (
-          <span className="chip chip--note" title={pedido.notas}>
-            <Icon name="note" size={11} />
-            <span>nota</span>
-          </span>
-        )}
       </div>
 
       {/* Clave de seguimiento Shalom */}
       <div className="pedido-card__clave" onClick={(e) => e.stopPropagation()}>
-        {/* DEBUG — comentar tras verificar */}
-        {console.log("CLAVE DEL PEDIDO", pedido.id, ":", pedido.clave_shalom, pedido.clave)}
         <ClaveInput
           id={pedido.id}
           value={pedido.clave_shalom || pedido.clave || ""}
@@ -244,7 +283,17 @@ function PedidoCard({ pedido, selected, onToggleSelect, onConfirm, onUnconfirm, 
         />
       </div>
 
-      <div className="pedido-card__actions" onClick={(e) => e.stopPropagation()}>
+      {/* Notas inline */}
+      <div className="pedido-card__notas" onClick={(e) => e.stopPropagation()}>
+        <NotasInput
+          id={pedido.id}
+          value={pedido.notas ?? ""}
+          onSave={onUpdateNotas}
+        />
+      </div>
+
+      {/* Botón siempre al fondo */}
+      <div className="pedido-card__actions" style={{marginTop:"auto"}} onClick={(e) => e.stopPropagation()}>
         {confirmado ? (
           <button className="btn-unconfirm" onClick={() => onUnconfirm(pedido.id)}>
             <Icon name="x" size={12} />
@@ -418,7 +467,7 @@ function Summary({ pending, confirmed, total, pendingTotal, confirmedTotal, extr
 }
 
 // ── Side panel ───────────────────────────────────────────
-function SidePanel({ pedido, onClose, onConfirm, onUnconfirm, onUpdateClave }) {
+function SidePanel({ pedido, onClose, onConfirm, onUnconfirm, onUpdateClave, onUpdateNotas }) {
   React.useEffect(() => {
     if (!pedido) return;
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -495,21 +544,16 @@ function SidePanel({ pedido, onClose, onConfirm, onUnconfirm, onUpdateClave }) {
           </div>
         </div>
 
-        {pedido.notas ? (
-          <div className="side-panel__notas">
-            <div className="side-panel__notas-label">
-              <Icon name="note" size={12} /> Notas
-            </div>
-            <p>{pedido.notas}</p>
+        <div className="side-panel__notas">
+          <div className="side-panel__notas-label">
+            <Icon name="note" size={12} /> Notas
           </div>
-        ) : (
-          <div className="side-panel__notas side-panel__notas--empty">
-            <div className="side-panel__notas-label">
-              <Icon name="note" size={12} /> Notas
-            </div>
-            <p>Sin notas para este pedido.</p>
-          </div>
-        )}
+          <NotasInput
+            id={pedido.id}
+            value={pedido.notas ?? ""}
+            onSave={onUpdateNotas}
+          />
+        </div>
 
         <footer className="side-panel__footer">
           {pedido.es_confirmado ? (
@@ -587,7 +631,7 @@ function BulkBar({ count, selectedIds, pedidos, onConfirmAll, onUnconfirmAll, on
 Object.assign(window, {
   PedidoCard, DateGroup, KanbanColumn,
   FiltersBar, Summary, SidePanel, Field, BulkBar,
-  ClaveInput,
+  ClaveInput, NotasInput,
   formatFecha, formatHora, formatSoles,
   groupByDay, diffDays, startOfDay,
   Icon, StatusChip

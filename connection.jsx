@@ -221,6 +221,36 @@ async function patchConfirmacion(cfg, id, value) {
   }
 }
 
+// ── patchNotas ────────────────────────────────────────────
+// Actualiza las notas de un pedido.
+async function patchNotas(cfg, id, notas) {
+  if (cfg.mode === "demo") return { ok: true };
+  if (cfg.mode === "n8n") {
+    return postN8N(cfg, { id, accion: "notas", notas });
+  }
+  if (!cfg.url) return { ok: true };
+  try {
+    const base    = cfg.url.replace(/\/+$/, "");
+    const headers = { ...buildHeaders(cfg), "Content-Type": "application/json" };
+    const idCol   = cfg.mapping.id || "id";
+    let url;
+    if (cfg.mode === "supabase") {
+      url = `${base}/rest/v1/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else if (cfg.mode === "postgrest") {
+      url = `${base}/${cfg.table}?${idCol}=eq.${encodeURIComponent(id)}`;
+      headers["Prefer"] = "return=minimal";
+    } else {
+      url = `${base}/${encodeURIComponent(id)}`;
+    }
+    const res = await fetch(url, { method: "PATCH", headers, body: JSON.stringify({ notas }) });
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
 // ── patchClave ────────────────────────────────────────────
 // Actualiza la clave (código de seguimiento) de un pedido.
 async function patchClave(cfg, id, clave) {
@@ -505,6 +535,6 @@ function ConnectionModal({ open, onClose, config, onSave }) {
 Object.assign(window, {
   CONNECTION_DEFAULTS,
   loadConfig, saveConfig,
-  fetchPedidos, patchConfirmacion, patchClave,
+  fetchPedidos, patchConfirmacion, patchClave, patchNotas,
   ConnectionBadge, ConnectionModal,
 });
