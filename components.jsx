@@ -510,17 +510,41 @@ function KanbanColumn({ title, count, total, groups, isConfirmedCol, accent, sel
 
 // ── Filters bar ──────────────────────────────────────────
 function FiltersBar({ filters, setFilters, productos, distritos, couriers, dateRange, setDateRange }) {
+  const isRango = dateRange === "rango";
   return (
     <div className="filters">
-      {/* Rango */}
+      {/* Rango rápido */}
       <div className="seg" style={{ flexShrink: 0 }}>
-        {[{ v: "hoy", l: "Hoy" }, { v: "7d", l: "7d" }, { v: "30d", l: "30d" }, { v: "all", l: "Todo" }].map(opt => (
+        {[
+          { v: "hoy",   l: "Hoy" },
+          { v: "7d",    l: "7d" },
+          { v: "30d",   l: "30d" },
+          { v: "all",   l: "Todo" },
+          { v: "rango", l: "Rango" },
+        ].map(opt => (
           <button key={opt.v}
             className={`seg__btn ${dateRange === opt.v ? "is-active" : ""}`}
             onClick={() => setDateRange(opt.v)}
           >{opt.l}</button>
         ))}
       </div>
+
+      {/* Inputs de fecha solo cuando 'Rango' está activo */}
+      {isRango && (
+        <div className="date-range">
+          <input type="date" className="filters__select date-range__input"
+            value={filters.fechaDesde || ""}
+            max={filters.fechaHasta || undefined}
+            onChange={(e) => setFilters(f => ({ ...f, fechaDesde: e.target.value }))}
+            title="Desde" />
+          <span className="date-range__sep">→</span>
+          <input type="date" className="filters__select date-range__input"
+            value={filters.fechaHasta || ""}
+            min={filters.fechaDesde || undefined}
+            onChange={(e) => setFilters(f => ({ ...f, fechaHasta: e.target.value }))}
+            title="Hasta" />
+        </div>
+      )}
 
       {/* Buscar */}
       <div className="input-wrap filters__search">

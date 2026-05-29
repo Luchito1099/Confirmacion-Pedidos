@@ -254,6 +254,38 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; color: var(--c-text-strong); }
   border-color: var(--c-green-mid);
   box-shadow: 0 0 0 2px rgba(0,196,180,0.18);
 }
+
+/* Inputs de rango de fechas */
+.date-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.date-range__input {
+  font-family: "IBM Plex Mono", monospace;
+  padding: 4px 8px;
+  height: 28px;
+  background-image: none;
+  min-width: 130px;
+  color: var(--c-text);
+  color-scheme: dark;
+}
+.date-range__sep {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+.date-range__input::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.date-range__input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+@media (max-width: 768px) {
+  .date-range { width: 100%; }
+  .date-range__input { flex: 1; min-width: 0; }
+}
 @media (max-width: 768px) {
   .filters { flex-wrap: wrap; min-height: auto; padding: 6px 10px; gap: 6px; }
   .filters__search { min-width: 100%; order: -1; }
@@ -1758,7 +1790,10 @@ function App() {
   const [pedidos, setPedidos] = React.useState(() =>
     loadConfig().mode === "demo" ? window.PEDIDOS_DATA : []
   );
-  const [filters, setFilters] = React.useState({ query: "", producto: "", distrito: "", courier: "" });
+  const [filters, setFilters] = React.useState({
+    query: "", producto: "", distrito: "", courier: "",
+    fechaDesde: "", fechaHasta: ""
+  });
   const [mobileTab, setMobileTab] = React.useState("pending");
   const [view, setView] = React.useState("kanban");   // "kanban" | "entregados"
   const [dateRange, setDateRange] = React.useState("7d");
@@ -1875,6 +1910,17 @@ function App() {
           if (dateRange === "hoy" && dDiff !== 0) return false;
           if (dateRange === "7d"  && dDiff > 6)   return false;
           if (dateRange === "30d" && dDiff > 29)  return false;
+          if (dateRange === "rango") {
+            // Filtra por rango de fechas personalizado (inclusivo)
+            if (filters.fechaDesde) {
+              const desde = new Date(filters.fechaDesde + "T00:00:00");
+              if (d < desde) return false;
+            }
+            if (filters.fechaHasta) {
+              const hasta = new Date(filters.fechaHasta + "T23:59:59");
+              if (d > hasta) return false;
+            }
+          }
 
           // Query — guarda contra null/undefined en cualquier campo
           if (filters.query) {
